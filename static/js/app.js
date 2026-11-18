@@ -10,6 +10,7 @@ const howToApplyInput = document.getElementById("how-to-apply");
 const contactInput = document.getElementById("contact");
 
 const generateBtn = document.getElementById("generate-btn");
+const loadFactsBtn = document.getElementById("load-facts-btn");
 const fillSampleBtn = document.getElementById("fill-sample-btn");
 const copyBtn = document.getElementById("copy-btn");
 const downloadBtn = document.getElementById("download-btn");
@@ -198,6 +199,49 @@ draftEditor.addEventListener("input", () => {
   downloadBtn.disabled = !hasContent;
 });
 
+const FACT_STORAGE_KEY = "doc_draft_fact_card";
+const factFieldMap = {
+  date_time: dateTimeInput,
+  location: locationInput,
+  target: targetInput,
+  how_to_apply: howToApplyInput,
+  contact: contactInput,
+};
+
+function saveFactCard() {
+  const facts = {};
+  for (const [key, input] of Object.entries(factFieldMap)) {
+    facts[key] = input.value;
+  }
+  localStorage.setItem(FACT_STORAGE_KEY, JSON.stringify(facts));
+}
+
+function loadFactCard() {
+  clearError();
+  clearStatus();
+  const raw = localStorage.getItem(FACT_STORAGE_KEY);
+  if (!raw) {
+    showError("저장된 사실 카드가 없습니다. 먼저 사실 카드를 입력해 주세요.");
+    return;
+  }
+
+  try {
+    const facts = JSON.parse(raw);
+    for (const [key, input] of Object.entries(factFieldMap)) {
+      input.value = typeof facts[key] === "string" ? facts[key] : "";
+    }
+    showStatus("저장된 사실 카드를 불러왔습니다.");
+  } catch (err) {
+    showError("저장된 사실 카드를 불러오는 중 문제가 발생했습니다.");
+  }
+}
+
+for (const input of Object.values(factFieldMap)) {
+  input.addEventListener("input", saveFactCard);
+}
+
+loadFactsBtn.addEventListener("click", loadFactCard);
+
 fillSampleBtn.addEventListener("click", () => {
   clearError();
   clearStatus();
@@ -210,6 +254,7 @@ fillSampleBtn.addEventListener("click", () => {
   targetInput.value = "2026학년도 2학기 학부 재학생";
   howToApplyInput.value = "학교 포털 로그인 후 [장학금 신청] 메뉴에서 온라인 제출";
   contactInput.value = "학생지원팀 (02-1234-5678)";
+  saveFactCard();
 });
 
 form.addEventListener("submit", async (event) => {
