@@ -280,6 +280,10 @@ form.addEventListener("submit", async (event) => {
     });
 
     const data = await response.json();
+    if (response.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
     if (!response.ok) {
       showError(data.error || "초안을 생성하지 못했습니다. 입력 내용을 확인해 주세요.");
       return;
@@ -359,4 +363,64 @@ downloadBtn.addEventListener("click", () => {
   link.remove();
   URL.revokeObjectURL(url);
   showStatus("마크다운(.md) 파일로 다운로드했습니다.");
+});
+
+// PWA 서비스 워커 등록 및 깔끔한 설치 팝업(Android Chrome / iOS Safari)
+const pwaBanner = document.getElementById("pwa-install-banner");
+const pwaBannerDesc = document.getElementById("pwa-banner-desc");
+const pwaInstallBtn = document.getElementById("pwa-install-btn");
+const pwaDismissBtn = document.getElementById("pwa-dismiss-btn");
+const PWA_DISMISS_KEY = "pwa_install_dismissed";
+let deferredInstallPrompt = null;
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
+
+function isStandaloneMode() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function isIosSafari() {
+  const ua = window.navigator.userAgent;
+  const isIos = /iPhone|iPad|iPod/i.test(ua);
+  const isSafari = /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua);
+  return isIos && isSafari;
+}
+
+function showInstallBanner(isIosMode) {
+  if (localStorage.getItem(PWA_DISMISS_KEY) === "1" || isStandaloneMode()) return;
+  if (isIosMode) {
+    pwaBannerDesc.textContent = "Safari 하단 공유(□↑) 버튼 → '홈 화면에 추가'를 눌러 설치하세요.";
+    pwaInstallBtn.textContent = "확인";
+  }
+  pwaBanner.classList.remove("hidden");
+}
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  showInstallBanner(false);
+});
+
+window.addEventListener("load", () => {
+  if (isIosSafari()) {
+    showInstallBanner(true);
+  }
+});
+
+pwaInstallBtn.addEventListener("click", async () => {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+  }
+  pwaBanner.classList.add("hidden");
+});
+
+pwaDismissBtn.addEventListener("click", () => {
+  localStorage.setItem(PWA_DISMISS_KEY, "1");
+  pwaBanner.classList.add("hidden");
 });

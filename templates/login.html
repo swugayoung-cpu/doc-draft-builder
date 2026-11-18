@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1e3a8a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="문서초안">
+  <title>접근 확인 - 대학 행정 업무 문서 초안 생성기</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=4">
+</head>
+<body class="login-body">
+  <main class="login-wrapper">
+    <section class="panel login-card">
+      <div class="login-brand">
+        <img
+          src="{{ url_for('static', filename='images/suwon_logo.png') }}"
+          alt="수원대학교 로고"
+          class="login-logo"
+        >
+        <h1>대학 행정 업무 문서 초안 생성기</h1>
+        <p class="subtitle">허가된 사용자만 이용할 수 있습니다. 비밀번호(8자리 이상)를 입력해 주세요.</p>
+      </div>
+
+      <form method="POST" action="{{ url_for('login') }}" class="login-form">
+        <div class="form-group">
+          <label for="password">접근 비밀번호 (8자리 이상)</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            minlength="8"
+            placeholder="8자리 이상 비밀번호 입력"
+            required
+            autofocus
+          >
+        </div>
+
+        {% if error %}
+        <div class="alert error" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <button type="submit" class="primary-btn">잠금 해제</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
